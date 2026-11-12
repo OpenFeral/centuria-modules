@@ -30,12 +30,12 @@ public class AppealHandler {
 	 */
 	public static Mono<?> handle(String id, ModalSubmitInteractionEvent event, GatewayDiscordClient gateway) {
 		// Load fields
-		String shortWhy = event.getInteraction().getData().data().get().components().get().get(0).components().get()
-				.get(0).value().get();
-		String pardonReason = event.getInteraction().getData().data().get().components().get().get(1).components().get()
-				.get(0).value().get();
-		String followRules = event.getInteraction().getData().data().get().components().get().get(2).components().get()
-				.get(0).value().get();
+		String shortWhy = event.getInteraction().getData().data().get().components().get().get(0).component().get()
+				.value().get();
+		String pardonReason = event.getInteraction().getData().data().get().components().get().get(1).component().get()
+				.value().get();
+		String followRules = event.getInteraction().getData().data().get().components().get().get(2).component().get()
+				.value().get();
 
 		// Find owner UserID
 		String userID = event.getInteraction().getUser().getId().asString();
@@ -68,7 +68,7 @@ public class AppealHandler {
 		report += "--------------------------------------------------------------------------------------------------\n";
 
 		// Send to all guild log channels
-		for (Guild g : DiscordBotModule.getClient().getGuilds().toIterable()) {
+		for (Guild g : DiscordBotModule.getGatewayClient().getGuilds().toIterable()) {
 			String guildID = g.getId().asString();
 			JsonObject config = ServerConfigUtils.getServerConfig(guildID);
 			if (config.has("moderationLogChannel")) {
@@ -91,7 +91,7 @@ public class AppealHandler {
 
 				// Add report
 				try {
-					msg.addFile("appeal.txt", new ByteArrayInputStream(report.getBytes("UTF-8")));
+					msg.addFile("appeal.txt", null, new ByteArrayInputStream(report.getBytes("UTF-8")));
 				} catch (UnsupportedEncodingException e1) {
 				}
 

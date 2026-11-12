@@ -22,8 +22,8 @@ public class UpdateDisplayNameHandler {
 	 */
 	public static Mono<?> handle(String id, ModalSubmitInteractionEvent event, GatewayDiscordClient gateway) {
 		// Load fields
-		String newName = event.getInteraction().getData().data().get().components().get().get(0).components().get()
-				.get(0).value().get();
+		String newName = event.getInteraction().getData().data().get().components().get().get(0).component().get()
+				.value().get();
 
 		// Load account manager
 		AccountManager manager = AccountManager.getInstance();
@@ -51,7 +51,9 @@ public class UpdateDisplayNameHandler {
 		}
 
 		// Check if the name is in use
-		if (manager.isDisplayNameInUse(newName)) {
+		if ((manager.isDisplayNameInUse(newName) && (manager.getUserByDisplayName(newName) == null
+				|| !manager.getUserByDisplayName(newName).equals(account.getAccountID())))
+				|| (manager.isDisplayNameInUse(newName) && account.isRenameRequired())) {
 			// Reply with error
 			return event.reply("Selected display name is already in use.");
 		}

@@ -33,8 +33,8 @@ public class FeedbackReplyHandler {
 	 */
 	public static Mono<?> handle(String id, ModalSubmitInteractionEvent event, GatewayDiscordClient gateway) {
 		// Load fields
-		String reply = event.getInteraction().getData().data().get().components().get().get(0).components().get().get(0)
-				.value().get();
+		String reply = event.getInteraction().getData().data().get().components().get().get(0).component().get().value()
+				.get();
 
 		// Find account
 		CenturiaAccount account = AccountManager.getInstance().getAccount(id.split("/")[1]);
@@ -58,7 +58,7 @@ public class FeedbackReplyHandler {
 				try {
 					if (LinkUtils.isPairedWithDiscord(account)) {
 						String discord = LinkUtils.getDiscordAccountFrom(account);
-						User owner = DiscordBotModule.getClient().getUserById(Snowflake.of(discord)).block();
+						User owner = DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(discord)).block();
 
 						EmbedCreateSpec.Builder embed = EmbedCreateSpec.builder();
 						embed.title("Response to your Ingame Feedback");
@@ -104,7 +104,7 @@ public class FeedbackReplyHandler {
 			try {
 				if (LinkUtils.isPairedWithDiscord(account)) {
 					String discord = LinkUtils.getDiscordAccountFrom(account);
-					User owner = DiscordBotModule.getClient().getUserById(Snowflake.of(discord)).block();
+					User owner = DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(discord)).block();
 
 					EmbedCreateSpec.Builder embed = EmbedCreateSpec.builder();
 					embed.title("Response to your Ingame Feedback");

@@ -18,6 +18,7 @@ import org.asf.centuria.modules.events.accounts.AccountRegistrationEvent;
 import org.asf.centuria.modules.events.accounts.AccountTradeBanEvent;
 import org.asf.centuria.modules.events.accounts.AccountTradePardonEvent;
 import org.asf.centuria.modules.events.accounts.MiscModerationEvent;
+import org.asf.centuria.modules.events.updates.AutomaticUpdateFailedEvent;
 import org.asf.centuria.modules.events.accounts.AccountKickEvent;
 
 import com.google.gson.JsonObject;
@@ -32,6 +33,36 @@ import discord4j.core.spec.MessageCreateSpec;
 import discord4j.rest.util.Color;
 
 public class ModerationHandlers implements IEventReceiver {
+
+	@EventListener
+	public void handleUpdateFail(AutomaticUpdateFailedEvent ev) {
+		// Log moderation action to the moderation log
+		String message = "**Centuria Update System Log**\n";
+		message += "\n";
+		message += "An error occurred while running the automatic update system, please diagnose the server logs for more details.\n";
+		message += "Error occurred on: <t:" + (System.currentTimeMillis() / 1000) + ">";
+
+		// Send to all guild log channels
+		for (Guild g : DiscordBotModule.getGatewayClient().getGuilds().toIterable()) {
+			String guildID = g.getId().asString();
+			JsonObject config = ServerConfigUtils.getServerConfig(guildID);
+			if (config.has("moderationLogChannel")) {
+				// Find channel
+				String ch = config.get("moderationLogChannel").getAsString();
+				String srvMessage = message;
+				if (config.has("moderatorRole")) {
+					// Add ping
+					srvMessage += "\n\n<@&" + config.get("moderatorRole").getAsString() + ">";
+				}
+
+				// Attempt to send message
+				try {
+					g.getChannelById(Snowflake.of(ch)).block().getRestChannel().createMessage(srvMessage).block();
+				} catch (Exception e) {
+				}
+			}
+		}
+	}
 
 	@EventListener
 	public void handleMisc(MiscModerationEvent ev) {
@@ -57,7 +88,7 @@ public class ModerationHandlers implements IEventReceiver {
 		if (userID != null) {
 			User user = null;
 			try {
-				user = DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block();
+				user = DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block();
 			} catch (Exception e) {
 			}
 			if (user != null)
@@ -140,7 +171,7 @@ public class ModerationHandlers implements IEventReceiver {
 		message += "Action was taken on: <t:" + (System.currentTimeMillis() / 1000) + ">";
 
 		// Send to all guild log channels
-		for (Guild g : DiscordBotModule.getClient().getGuilds().toIterable()) {
+		for (Guild g : DiscordBotModule.getGatewayClient().getGuilds().toIterable()) {
 			String guildID = g.getId().asString();
 			JsonObject config = ServerConfigUtils.getServerConfig(guildID);
 			if (config.has("moderationLogChannel")) {
@@ -168,7 +199,7 @@ public class ModerationHandlers implements IEventReceiver {
 		if (userID != null) {
 			User user = null;
 			try {
-				user = DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block();
+				user = DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block();
 			} catch (Exception e) {
 			}
 			if (user != null)
@@ -200,14 +231,14 @@ public class ModerationHandlers implements IEventReceiver {
 				embed.color(Color.ORANGE);
 				embed.description(message);
 				embed.footer(DiscordBotModule.getServerName(),
-						DiscordBotModule.getClient().getSelf().block().getAvatarUrl());
+						DiscordBotModule.getGatewayClient().getSelf().block().getAvatarUrl());
 
 				// Message object
 				MessageCreateSpec.Builder msg = MessageCreateSpec.builder();
 				msg.addEmbed(embed.build());
 
 				// Send response
-				DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
+				DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
 						.createMessage(msg.build()).subscribe();
 			} catch (Exception e) {
 			}
@@ -231,7 +262,7 @@ public class ModerationHandlers implements IEventReceiver {
 		if (userID != null) {
 			User user = null;
 			try {
-				user = DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block();
+				user = DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block();
 			} catch (Exception e) {
 			}
 			if (user != null)
@@ -269,7 +300,7 @@ public class ModerationHandlers implements IEventReceiver {
 				embed.color(Color.RED);
 				embed.description(message);
 				embed.footer(DiscordBotModule.getServerName(),
-						DiscordBotModule.getClient().getSelf().block().getAvatarUrl());
+						DiscordBotModule.getGatewayClient().getSelf().block().getAvatarUrl());
 
 				// Message object
 				MessageCreateSpec.Builder msg = MessageCreateSpec.builder();
@@ -284,7 +315,7 @@ public class ModerationHandlers implements IEventReceiver {
 				}
 
 				// Send response
-				DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
+				DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
 						.createMessage(msg.build()).subscribe();
 			} catch (Exception e) {
 			}
@@ -320,14 +351,14 @@ public class ModerationHandlers implements IEventReceiver {
 				embed.color(Color.GREEN);
 				embed.description(message);
 				embed.footer(DiscordBotModule.getServerName(),
-						DiscordBotModule.getClient().getSelf().block().getAvatarUrl());
+						DiscordBotModule.getGatewayClient().getSelf().block().getAvatarUrl());
 
 				// Message object
 				MessageCreateSpec.Builder msg = MessageCreateSpec.builder();
 				msg.addEmbed(embed.build());
 
 				// Send response
-				DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
+				DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
 						.createMessage(msg.build()).subscribe();
 			} catch (Exception e) {
 			}
@@ -367,14 +398,14 @@ public class ModerationHandlers implements IEventReceiver {
 				embed.color(Color.RED);
 				embed.description(message);
 				embed.footer(DiscordBotModule.getServerName(),
-						DiscordBotModule.getClient().getSelf().block().getAvatarUrl());
+						DiscordBotModule.getGatewayClient().getSelf().block().getAvatarUrl());
 
 				// Message object
 				MessageCreateSpec.Builder msg = MessageCreateSpec.builder();
 				msg.addEmbed(embed.build());
 
 				// Send response
-				DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
+				DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
 						.createMessage(msg.build()).subscribe();
 			} catch (Exception e) {
 			}
@@ -406,14 +437,14 @@ public class ModerationHandlers implements IEventReceiver {
 				embed.color(Color.GREEN);
 				embed.description(message);
 				embed.footer(DiscordBotModule.getServerName(),
-						DiscordBotModule.getClient().getSelf().block().getAvatarUrl());
+						DiscordBotModule.getGatewayClient().getSelf().block().getAvatarUrl());
 
 				// Message object
 				MessageCreateSpec.Builder msg = MessageCreateSpec.builder();
 				msg.addEmbed(embed.build());
 
 				// Send response
-				DiscordBotModule.getClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
+				DiscordBotModule.getGatewayClient().getUserById(Snowflake.of(userID)).block().getPrivateChannel().block()
 						.createMessage(msg.build()).subscribe();
 			} catch (Exception e) {
 			}

@@ -87,21 +87,30 @@ public class DiscordBotModule implements ICenturiaModule {
 	 * 
 	 * @return GatewayDiscordClient instance
 	 */
-	public static GatewayDiscordClient getClient() {
+	public static GatewayDiscordClient getGatewayClient() {
 		return gateway;
+	}
+
+	/**
+	 * Retrieves the discord bot client
+	 * 
+	 * @return DiscordClient instance
+	 */
+	public static DiscordClient getDiscordClient() {
+		return client;
 	}
 
 	@Override
 	public void preInit() {
 		// Bind event handlers
-		EventBus.getInstance().addEventReceiver(new ModuleCommands());
-		EventBus.getInstance().addEventReceiver(new ModerationHandlers());
-		EventBus.getInstance().addEventReceiver(new ForgotPasswordHandler());
-		EventBus.getInstance().addEventReceiver(new LoginEventHandler());
-		EventBus.getInstance().addEventReceiver(new AnnouncementHandlers());
-		EventBus.getInstance().addEventReceiver(new GamePacketHandlers());
-		EventBus.getInstance().addEventReceiver(new AppealHandler());
-		EventBus.getInstance().addEventReceiver(new AppealStatusHandler());
+		EventBus.getInstance().addAllEventsFromReceiver(new ModuleCommands());
+		EventBus.getInstance().addAllEventsFromReceiver(new ModerationHandlers());
+		EventBus.getInstance().addAllEventsFromReceiver(new ForgotPasswordHandler());
+		EventBus.getInstance().addAllEventsFromReceiver(new LoginEventHandler());
+		EventBus.getInstance().addAllEventsFromReceiver(new AnnouncementHandlers());
+		EventBus.getInstance().addAllEventsFromReceiver(new GamePacketHandlers());
+		EventBus.getInstance().addAllEventsFromReceiver(new AppealHandler());
+		EventBus.getInstance().addAllEventsFromReceiver(new AppealStatusHandler());
 
 		// Applications
 		if (!new File("applications/codes").exists())
@@ -179,14 +188,15 @@ public class DiscordBotModule implements ICenturiaModule {
 					.addOption(CommandHandler.pardon()).addOption(CommandHandler.generateClearanceCode())
 					.addOption(CommandHandler.mute()).addOption(CommandHandler.ipBan())
 					.addOption(CommandHandler.makeModerator()).addOption(CommandHandler.makeAdmin())
-					.addOption(CommandHandler.removePerms()).addOption(CommandHandler.dmAnonymous())
-					.addOption(CommandHandler.generateApplicationCode()).addOption(CommandHandler.apply())
-					.addOption(CommandHandler.createApplicationPanel()).addOption(CommandHandler.tradeBan())
-					.addOption(CommandHandler.tradeTempBan()).addOption(CommandHandler.tradePardon()).build();
+					.addOption(CommandHandler.removePerms()).addOption(CommandHandler.retryAutomaticUpdate())
+					.addOption(CommandHandler.forceInstallUpdate()).addOption(CommandHandler.generateApplicationCode())
+					.addOption(CommandHandler.apply()).addOption(CommandHandler.createApplicationPanel())
+					.addOption(CommandHandler.tradeBan()).addOption(CommandHandler.tradeTempBan())
+					.addOption(CommandHandler.tradePardon()).build();
 
 			// Connect
-			client.gateway().setEnabledIntents(IntentSet.of(Intent.GUILD_PRESENCES, Intent.GUILD_MESSAGES,
-					Intent.DIRECT_MESSAGES, Intent.GUILD_MEMBERS, Intent.GUILDS)).withGateway(gateway -> {
+			client.gateway().setEnabledIntents(IntentSet.of(Intent.DIRECT_MESSAGES, Intent.GUILDS))
+					.withGateway(gateway -> {
 						// Button handler
 						Mono<Void> ev = gateway.on(ButtonInteractionEvent.class, event -> {
 							return InteractionButtonHandler.handle(event, gateway);
@@ -201,7 +211,7 @@ public class DiscordBotModule implements ICenturiaModule {
 							if (found) {
 								ApplicationCommandData cmd2 = cmds.filter(t -> t.name().equals("centuria"))
 										.blockFirst();
-								if (cmd2.options().get().size() != cmd.options().get().size()) {
+								if (cmd2 != null && cmd2.options().get().size() != cmd.options().get().size()) {
 									// Remove
 									try {
 										gateway.getRestClient().getApplicationService().deleteGuildApplicationCommand(

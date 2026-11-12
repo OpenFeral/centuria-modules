@@ -21,7 +21,6 @@ import org.asf.centuria.modules.events.chat.ChatMessageReceivedEvent;
 import org.asf.centuria.modules.events.chatcommands.ChatCommandEvent;
 import org.asf.centuria.modules.events.chatcommands.ModuleCommandSyntaxListEvent;
 import org.asf.centuria.networking.chatserver.ChatClient;
-import org.asf.centuria.networking.chatserver.rooms.ChatRoom;
 import org.asf.centuria.networking.chatserver.rooms.ChatRoomTypes;
 import org.asf.centuria.networking.gameserver.GameServer;
 import org.asf.centuria.social.SocialManager;
@@ -49,6 +48,8 @@ public class GcsForFeralModule implements ICenturiaModule {
 
 	@EventListener
 	public void accountBan(AccountBanEvent event) {
+		if (!event.isPermanent())
+			return; // Skip temp bans, they should retain gcs
 		if (event.getAccount().getSaveSharedInventory().containsItem("gcs")) {
 			// Player banned, leave all GCs
 			JsonArray arr = event.getAccount().getSaveSharedInventory().getItem("gcs").getAsJsonArray();
@@ -66,7 +67,7 @@ public class GcsForFeralModule implements ICenturiaModule {
 	@EventListener
 	public void accountDelete(AccountDeletionEvent event) {
 		if (event.getAccount().getSaveSharedInventory().containsItem("gcs")) {
-			// Player banned, leave all GCs
+			// Account deleted, leave all GCs
 			JsonArray arr = event.getAccount().getSaveSharedInventory().getItem("gcs").getAsJsonArray();
 			for (JsonElement ele : arr) {
 				String id = ele.getAsString();
