@@ -145,9 +145,12 @@ public class LoginEventHandler implements IEventReceiver {
 
 					// Send DM
 					try {
-						owner.getPrivateChannel().block().createMessage(msg.build()).subscribe();
+						owner.getPrivateChannel().block().createMessage(msg.build()).block();
 					} catch (Exception e) {
 						// DM error, probably no mutual server, we cannot risk locking people out
+
+						// Login was confirmed
+						event.getClient().container = oldCont;
 						return;
 					}
 
